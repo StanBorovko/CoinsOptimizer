@@ -233,13 +233,14 @@ class App {
         }
         while (true);
         // console.log(newDrivers);
-        return {bestDriver: newSurvivedDrivers[0], counter}
+
+        return {bestDriver: newSurvivedDrivers[0], bestDebt: newDebts[0].debt, counter}
     }
 }
 
 const app = new App({
     costs: input,
-    maxCounter: 5
+    maxCounter: 1000
 });
 console.log(app.run());
 // console.log(app.mutateDriver([8, 3, 2, 9, 4, 7, 10, 1, 5, 6]));
