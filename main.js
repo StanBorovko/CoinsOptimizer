@@ -1,26 +1,35 @@
 const input = [2, 7, 5, 8, 9, 10, 6, 5, 4, 3];
 
-const testDrivers =  [
-    [ 10, 2, 6, 5, 7, 8, 1, 3, 4, 9 ],
-    [ 8, 4, 2, 9, 10, 3, 1, 7, 6, 5 ],
-    [ 6, 2, 8, 7, 5, 10, 3, 9, 1, 4 ],
-    [ 3, 8, 4, 1, 6, 10, 2, 5, 9, 7 ],
-    [ 1, 3, 7, 9, 4, 6, 10, 5, 8, 2 ],
-    [ 9, 4, 2, 7, 3, 1, 5, 10, 8, 6 ],
-    [ 6, 5, 3, 1, 2, 4, 10, 8, 7, 9 ],
-    [ 3, 7, 10, 4, 5, 8, 9, 2, 1, 6 ],
-    [ 1, 4, 7, 9, 6, 2, 3, 10, 5, 8 ],
-    [ 8, 3, 2, 9, 4, 7, 10, 1, 5, 6 ]
+const testDrivers = [
+    [10, 2, 6, 5, 7, 8, 1, 3, 4, 9],
+    [8, 4, 2, 9, 10, 3, 1, 7, 6, 5],
+    [6, 2, 8, 7, 5, 10, 3, 9, 1, 4],
+    [3, 8, 4, 1, 6, 10, 2, 5, 9, 7],
+    [1, 3, 7, 9, 4, 6, 10, 5, 8, 2],
+    [9, 4, 2, 7, 3, 1, 5, 10, 8, 6],
+    [6, 5, 3, 1, 2, 4, 10, 8, 7, 9],
+    [3, 7, 10, 4, 5, 8, 9, 2, 1, 6],
+    [1, 4, 7, 9, 6, 2, 3, 10, 5, 8],
+    [8, 3, 2, 9, 4, 7, 10, 1, 5, 6]
 ];
 
 
-
 class App {
-    constructor({costs, driversNumber = 10, maxCounter = 1000}) {
+    constructor({
+                    costs,
+                    driversNumber = 10, //Number of random creating drivers (min 8)
+                    maxCounter = 100, //Maximum number of steps, algorithm is stopping after achieving max steps number
+                    survivePercent = 0.5, //Percent of non-dropped drivers (max 1, min 0.1)
+                    mutationPercent = 0.3, //Percent of mutated drivers (max 1, min 0.1)
+                    mutationRate = 0.2 //Percent of mutated coins of every mutated driver (max 1, min 0.1)
+                }) {
         this.costs = costs;
         this.coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         this.driversNumber = driversNumber;
         this.maxCounter = maxCounter;
+        this.surviveNumber = Math.round(this.driversNumber * survivePercent);
+        this.mutantsNumber = Math.round(this.driversNumber * mutationPercent);
+        this.mutationRate = Math.round(this.coins.length * mutationRate);
     }
 
     static random10() {
@@ -39,6 +48,18 @@ class App {
         } else {
             for (let i = 0; i < coins1; i++) {
                 if (driver1[i] !== driver2[i]) {
+                    return false
+                }
+            }
+        }
+        return true;
+    }
+
+    static validate(driver) {
+        let coinsNumber = driver.length;
+        for (let i = 0; i < coinsNumber - 1; i++) {
+            for (let j = i + 1; j < coinsNumber; j++) {
+                if (driver[i] === driver[j]) {
                     return false
                 }
             }
@@ -99,7 +120,7 @@ class App {
             }),
             survivedDrivers = [];
         // console.log(sortedDebts);
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < this.surviveNumber; i++) {
             let survivedIndex = sortedDebts[i].driver;
             survivedDrivers.push(drivers[survivedIndex]);
         }
@@ -127,12 +148,42 @@ class App {
         let j = 0;
         for (let i = initialNumber; i < this.driversNumber; i++) {
             let current = drivers[j],
-                next = ((j + 1) < initialNumber) ? drivers[j + 1] : drivers[0];
-            newDrivers.push(this.crossbreedRandom(current, next));
+                next = ((j + 1) < initialNumber) ? drivers[j + 1] : drivers[0],
+            newDriver = this.crossbreedRandom(current, next);
+            if (App.validate(newDriver)) {
+                newDrivers.push(newDriver);
+            } else {
+                newDrivers.push(current);
+            }
             if ((j + 1) < initialNumber) j++;
             else j = 0;
         }
         return [...newDrivers, ...drivers];
+    }
+
+    mutateDriver(driver) {
+        let driverCopy = [...driver];
+        for (let i = 0; i < this.mutationRate; i++) {
+            let coinsNumber = driver.length,
+                randomIndex1 = App.randomN(coinsNumber - 1),
+                randomIndex2 = App.randomN(coinsNumber - 1);
+            while (randomIndex1 === randomIndex2) {
+                randomIndex2 = App.randomN(coinsNumber - 1);
+            }
+            driverCopy[randomIndex1] = driver[randomIndex2];
+            driverCopy[randomIndex2] = driver[randomIndex1];
+        }
+        return driverCopy;
+    }
+
+    mutateAllDrivers(drivers) {
+        let driversCopy = [...drivers];
+        for (let i = 0; i < this.mutantsNumber; i++) {
+            let driversNumber = drivers.length,
+                randomIndex = App.randomN(driversNumber - 1);
+            driversCopy[randomIndex] = this.mutateDriver(driversCopy[randomIndex]);
+        }
+        return driversCopy;
     }
 
 
@@ -149,11 +200,11 @@ class App {
             newSurvivedDrivers = null,
             counter = 0;
         do {
-            newDrivers = this.crossbreedDrivers(survivedDrivers);
+            newDrivers = this.mutateAllDrivers(this.crossbreedDrivers(survivedDrivers));
             console.log('newDrivers:', newDrivers);
             newDebts = this.getDebts(newDrivers);
             newSurvivedDrivers = this.killWorstDrivers(newDrivers, newDebts);
-            if (App.compareAllDrivers(survivedDrivers, newSurvivedDrivers) /*|| counter >= this.maxCounter*/) {
+            if (App.compareAllDrivers(survivedDrivers, newSurvivedDrivers) || counter >= this.maxCounter) {
                 break;
             } else {
                 survivedDrivers = newSurvivedDrivers;
@@ -167,7 +218,6 @@ class App {
 }
 
 const app = new App({
-    costs: input,
-    maxCounter: 6
+    costs: input
 });
 console.log(app.run());
