@@ -20,16 +20,33 @@ class App {
                     driversNumber = 10, //Number of random creating drivers (min 8)
                     maxCounter = 100, //Maximum number of steps, algorithm is stopping after achieving max steps number
                     survivePercent = 0.5, //Percent of non-dropped drivers (max 1, min 0.1)
+                    mutation = false, //true if need mutation, false in other case
                     mutationPercent = 0.3, //Percent of mutated drivers (max 1, min 0.1)
-                    mutationRate = 0.2 //Percent of mutated coins of every mutated driver (max 1, min 0.1)
+                    mutationRate = 0.2, //Percent of mutated coins of every mutated driver (max 1, min 0.1)
+                    testMode = false //If true - array "drivers" will be one every time.
                 }) {
         this.costs = costs;
         this.coins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         this.driversNumber = driversNumber;
         this.maxCounter = maxCounter;
         this.surviveNumber = Math.round(this.driversNumber * survivePercent);
+        this.mutation = mutation;
         this.mutantsNumber = Math.round(this.driversNumber * mutationPercent);
         this.mutationRate = Math.round(this.coins.length * mutationRate);
+
+        this.testMode = testMode;
+        this.testDrivers = [
+            [10, 2, 6, 5, 7, 8, 1, 3, 4, 9],
+            [8, 4, 2, 9, 10, 3, 1, 7, 6, 5],
+            [6, 2, 8, 7, 5, 10, 3, 9, 1, 4],
+            [3, 8, 4, 1, 6, 10, 2, 5, 9, 7],
+            [1, 3, 7, 9, 4, 6, 10, 5, 8, 2],
+            [9, 4, 2, 7, 3, 1, 5, 10, 8, 6],
+            [6, 5, 3, 1, 2, 4, 10, 8, 7, 9],
+            [3, 7, 10, 4, 5, 8, 9, 2, 1, 6],
+            [1, 4, 7, 9, 6, 2, 3, 10, 5, 8],
+            [8, 3, 2, 9, 4, 7, 10, 1, 5, 6]
+        ];
     }
 
     static random10() {
@@ -199,7 +216,7 @@ class App {
     run() {
         // let drivers = this.getRandomDrivers(this.driversNumber);
         // console.log('drivers:', drivers);
-        let drivers = testDrivers;
+        let drivers = (this.testMode) ? this.testDrivers : this.getRandomDrivers(this.driversNumber);
         let debts = this.getDebts(drivers);
         // console.log('debts:', debts);
         let survivedDrivers = this.killWorstDrivers(drivers, debts);
@@ -217,7 +234,7 @@ class App {
                 return App.validate(driver)
             }));
 */
-            newDrivers = this.mutateAllDrivers(crossbreeded);
+            newDrivers = (this.mutation) ? this.mutateAllDrivers(crossbreeded) : crossbreeded;
             /*console.log('mutating:',newDrivers.map(driver => {
                 return App.validate(driver);
             }));*/
@@ -242,7 +259,16 @@ const app = new App({
     costs: input,
     maxCounter: 1000
 });
-console.log(app.run());
+const app2 = new App({
+    costs: input,
+    mutation: true,
+    maxCounter: 1000
+});
+for (let i = 0; i < 10; i++) {
+    console.log('with mutation:',app.run());
+    console.log('without mutation:',app2.run());
+}
+
 // console.log(app.mutateDriver([8, 3, 2, 9, 4, 7, 10, 1, 5, 6]));
 /*
 console.log(testDrivers.map(driver => {
