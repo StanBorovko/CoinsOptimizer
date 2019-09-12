@@ -127,19 +127,23 @@ class App {
         return survivedDrivers;
     }
 
-    crossbreed50to50(breed1, breed2) {
-        return [
-            ...breed1.slice(0, 5),
-            ...breed2.slice(5)
+    crossbreed(breed1, breed2, index) {
+        const newBreed = [
+            ...breed1.slice(0, index),
+            ...breed2.slice(index)
         ];
+        // console.log('breed1:', App.validate(breed1), '\nbreed2:', App.validate(breed2), '\nnew_breed:', App.validate(newBreed));
+        // console.log('result:', (App.validate(newBreed)) ? 'newBreed' : 'breed1');
+        return (App.validate(newBreed)) ? newBreed : breed1;
+    }
+
+    crossbreed50to50(breed1, breed2) {
+        return this.crossbreed(breed1, breed2, 5);
     }
 
     crossbreedRandom(breed1, breed2) {
         const randomIndex = App.randomN(breed1.length - 1);
-        return [
-            ...breed1.slice(0, randomIndex),
-            ...breed2.slice(randomIndex)
-        ];
+        return  this.crossbreed(breed1, breed2, randomIndex);
     }
 
     crossbreedDrivers(drivers) {
@@ -158,6 +162,7 @@ class App {
             if ((j + 1) < initialNumber) j++;
             else j = 0;
         }
+        // console.log('newDrivers', newDrivers, '\ndrivers', drivers);
         return [...newDrivers, ...drivers];
     }
 
@@ -170,8 +175,9 @@ class App {
             while (randomIndex1 === randomIndex2) {
                 randomIndex2 = App.randomN(coinsNumber - 1);
             }
+            let randomCoin = driverCopy[randomIndex1];
             driverCopy[randomIndex1] = driver[randomIndex2];
-            driverCopy[randomIndex2] = driver[randomIndex1];
+            driverCopy[randomIndex2] = randomCoin;
         }
         return driverCopy;
     }
@@ -181,7 +187,10 @@ class App {
         for (let i = 0; i < this.mutantsNumber; i++) {
             let driversNumber = drivers.length,
                 randomIndex = App.randomN(driversNumber - 1);
-            driversCopy[randomIndex] = this.mutateDriver(driversCopy[randomIndex]);
+            do {
+                driversCopy[randomIndex] = this.mutateDriver(drivers[randomIndex]);
+            }
+            while (!App.validate(driversCopy[randomIndex])) ;
         }
         return driversCopy;
     }
@@ -194,14 +203,25 @@ class App {
         let debts = this.getDebts(drivers);
         // console.log('debts:', debts);
         let survivedDrivers = this.killWorstDrivers(drivers, debts);
+        /*console.log('surviving',survivedDrivers.map(driver => {
+            return App.validate(driver)
+        }));*/
         // console.log('survivedDrivers:', survivedDrivers);
         let newDrivers = null,
             newDebts = null,
             newSurvivedDrivers = null,
             counter = 0;
         do {
-            newDrivers = this.mutateAllDrivers(this.crossbreedDrivers(survivedDrivers));
-            console.log('newDrivers:', newDrivers);
+            let crossbreeded = this.crossbreedDrivers(survivedDrivers);
+            /*console.log('crossbreeding',crossbreeded.map(driver => {
+                return App.validate(driver)
+            }));
+*/
+            newDrivers = this.mutateAllDrivers(crossbreeded);
+            /*console.log('mutating:',newDrivers.map(driver => {
+                return App.validate(driver);
+            }));*/
+            // console.log('newDrivers:', newDrivers);
             newDebts = this.getDebts(newDrivers);
             newSurvivedDrivers = this.killWorstDrivers(newDrivers, newDebts);
             if (App.compareAllDrivers(survivedDrivers, newSurvivedDrivers) || counter >= this.maxCounter) {
@@ -212,12 +232,18 @@ class App {
             }
         }
         while (true);
-        console.log(newDrivers);
+        // console.log(newDrivers);
         return {bestDriver: newSurvivedDrivers[0], counter}
     }
 }
 
 const app = new App({
-    costs: input
+    costs: input,
+    maxCounter: 5
 });
 console.log(app.run());
+// console.log(app.mutateDriver([8, 3, 2, 9, 4, 7, 10, 1, 5, 6]));
+/*
+console.log(testDrivers.map(driver => {
+    return App.validate(driver)
+}));*/
