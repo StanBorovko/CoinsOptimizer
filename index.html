@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Coins Optimizer</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+<header class="mt-3 mb-5 text-center">
+    <h1>Coins Optimizer</h1>
+    <h4>Find coins order optimal for paying</h4>
+</header>
+<main class="w-75 m-auto">
+
+    <section class="input">
+        <form id="input-form" action="/">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputField">Coins for payment on every checkpoint:</label>
+                </div>
+                <input type="text" class="form-control" id="inputField">
+                <button type="submit" class="btn btn-outline-primary" id="getTurns">Get optimal coins order</button>
+            </div>
+        </form>
+        <div>Example input:</div>
+        <div>2, 7, 5, 8, 9, 10, 6, 5, 4, 3</div>
+    </section>
+
+    <section class="mb-3">
+        <h4>Optimal order:</h4>
+        <div id="result" class="list-group">
+
+        </div>
+    </section>
+</main>
+<script src="js/main.js"></script>
+</body>
+</html>

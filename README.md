@@ -1,5 +1,5 @@
 # CoinsOptimizer
-Sort coins in order optimal for paying 
+Find coins order optimal for paying 
 
 Описание алгоритма:
 
